@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { Trophy, Wrench, Gauge, Zap, Battery } from "lucide-react";
 import { eras } from "@/data/eras";
 
-const iconMap: Record<string, React.FC<{ className?: string }>> = {
+const iconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement> & { className?: string }>> = {
   trophy: Trophy,
   wrench: Wrench,
   gauge: Gauge,
