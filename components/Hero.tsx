@@ -1,145 +1,295 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ChevronDown, Zap, Timer, Trophy } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
+import { ChevronDown, Zap, Timer, Trophy, ArrowRight } from "lucide-react";
+
+function TextScramble({ text, className, delay = 0 }: { text: string; className?: string; delay?: number }) {
+  const [display, setDisplay] = useState(text);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+    const chars = "!<>-_\\/[]{}—=+*^?#________";
+    let iteration = 0;
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        setDisplay(
+          text.split("").map((char, index) => {
+            if (index < iteration) return char;
+            return chars[Math.floor(Math.random() * chars.length)];
+          }).join("")
+        );
+        if (iteration >= text.length) clearInterval(interval);
+        iteration += 1 / 3;
+      }, 30);
+      return () => clearInterval(interval);
+    }, delay * 1000);
+    return () => clearTimeout(timeout);
+  }, [text, delay, isInView]);
+
+  return (
+    <span ref={ref} className={className}>
+      {display}
+    </span>
+  );
+}
+
+function ParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    const particles: Array<{
+      x: number; y: number; vx: number; vy: number;
+      size: number; opacity: number; color: string;
+    }> = [];
+
+    const colors = ["#E8002D", "#3671C6", "#27F4D2", "#FF8000", "#229971"];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: Math.random() * 1.5 + 0.5,
+        opacity: Math.random() * 0.4 + 0.1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+      });
+
+      particles.forEach((a, i) => {
+        particles.slice(i + 1).forEach((b) => {
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = a.color;
+            ctx.globalAlpha = (1 - dist / 150) * 0.06;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+      });
+
+      ctx.globalAlpha = 1;
+      animId = requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />;
+}
 
 export default function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.6], [1, 0.9]);
+  const springY = useSpring(y, { stiffness: 50, damping: 20 });
+
+  const stats = [
+    { icon: Zap, value: "350+", label: "km/h Top Speed", color: "#E8002D" },
+    { icon: Timer, value: "75", label: "Years of Racing", color: "#27F4D2" },
+    { icon: Trophy, value: "1,100+", label: "Grand Prix Races", color: "#FF8000" },
+  ];
+
   return (
     <section
       id="hero"
+      ref={containerRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      <div className="absolute inset-0 grid-bg" />
+      <ParticleField />
 
       <div className="absolute inset-0">
-        <svg
-          className="absolute inset-0 w-full h-full opacity-10"
-          viewBox="0 0 1200 800"
-          preserveAspectRatio="xMidYMid slice"
-        >
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
           <defs>
-            <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#E5053A" stopOpacity="0" />
-              <stop offset="50%" stopColor="#E5053A" stopOpacity="1" />
-              <stop offset="100%" stopColor="#0600EF" stopOpacity="0" />
+            <linearGradient id="hero-line" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#E8002D" stopOpacity="0" />
+              <stop offset="50%" stopColor="#E8002D" stopOpacity="1" />
+              <stop offset="100%" stopColor="#FF8000" stopOpacity="0" />
             </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
-          {[...Array(12)].map((_, i) => (
+          {[...Array(15)].map((_, i) => (
             <path
               key={i}
-              d={`M${-100 + i * 50},${800 - i * 60} Q${600 + Math.sin(i) * 200},${400 + Math.cos(i) * 100} ${1300 + i * 30},${i * 70}`}
+              d={`M${-100 + i * 40},${800 - i * 55} Q${600 + Math.sin(i * 0.7) * 250},${350 + Math.cos(i * 0.5) * 120} ${1400 + i * 20},${i * 60}`}
               fill="none"
-              stroke="url(#line-grad)"
-              strokeWidth="1"
-              filter="url(#glow)"
-              opacity={0.3 + (i % 3) * 0.2}
+              stroke="url(#hero-line)"
+              strokeWidth="0.8"
               className="telemetry-line"
-              style={{ animationDelay: `${i * 0.15}s` }}
+              style={{ animationDelay: `${i * 0.2}s` }}
             />
-          ))}
-          {[...Array(8)].map((_, i) => (
-            <circle
-              key={`dot-${i}`}
-              cx={150 + i * 130}
-              cy={200 + Math.sin(i * 0.8) * 150}
-              r="3"
-              fill={["#E5053A", "#0600EF", "#00F5D4", "#FF8000"][i % 4]}
-              opacity="0.6"
-            >
-              <animate
-                attributeName="opacity"
-                values="0.2;0.8;0.2"
-                dur={`${2 + i * 0.3}s`}
-                repeatCount="indefinite"
-              />
-            </circle>
           ))}
         </svg>
       </div>
 
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ferrari-red via-mercedes-cyan to-rb-blue opacity-50" />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
+      <motion.div style={{ y: springY, opacity, scale }} className="relative z-10 max-w-6xl mx-auto px-4 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="mb-6"
+          initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="mb-8"
         >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-white/50 tracking-widest uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-mercedes-cyan animate-pulse" />
-            Live Telemetry Dashboard
+          <span className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white/[0.03] border border-white/[0.06] text-[10px] font-mono text-white/40 tracking-[0.25em] uppercase backdrop-blur-sm">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#27F4D2] opacity-60" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#27F4D2]" />
+            </span>
+            Season 2025 Live Telemetry
           </span>
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight mb-6 leading-[0.95]"
+        <motion.div
+          initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, delay: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-6"
         >
-          <span className="block text-white">Formula 1</span>
-          <span className="block bg-gradient-to-r from-ferrari-red via-mclaren-papaya to-mercedes-cyan bg-clip-text text-transparent">
-            Fandom & History
-          </span>
-        </motion.h1>
+          <h1 className="text-5xl sm:text-7xl lg:text-[6.5rem] font-black tracking-[-0.04em] mb-2 leading-[0.9]">
+            <span className="block text-white">
+              <TextScramble text="Formula" delay={1.2} />
+            </span>
+            <span className="block text-gradient-red">
+              <TextScramble text="One" delay={1.6} />
+            </span>
+          </h1>
+        </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="text-lg sm:text-xl text-white/40 max-w-2xl mx-auto mb-10 font-light leading-relaxed"
+        <motion.div
+          initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.8, delay: 1.4 }}
+          className="mb-10"
         >
-          Explore the rich heritage of Formula 1 through interactive telemetry visualizations, 
-          team deep-dives, driver analytics, and era-spanning timelines.
-        </motion.p>
+          <p className="text-lg sm:text-xl text-white/30 max-w-xl mx-auto font-light leading-relaxed">
+            The world&apos;s most prestigious motorsport. Data-driven insights,
+            history, and real-time telemetry at your fingertips.
+          </p>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="flex flex-wrap items-center justify-center gap-4 mb-16"
+          transition={{ duration: 0.8, delay: 1.6 }}
+          className="flex flex-wrap items-center justify-center gap-5 mb-16"
         >
-          {[
-            { icon: Zap, label: "Interactive Telemetry", color: "text-ferrari-red" },
-            { icon: Timer, label: "75 Years of Racing", color: "text-mercedes-cyan" },
-            { icon: Trophy, label: "10 Constructors", color: "text-mclaren-papaya" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/5"
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, delay: 1.8 + i * 0.15 }}
+              className="glass-card px-6 py-4 flex items-center gap-4 group hover:border-white/10 transition-all duration-500"
             >
-              <item.icon className={`w-4 h-4 ${item.color}`} />
-              <span className="text-sm text-white/60">{item.label}</span>
-            </div>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: `${stat.color}10` }}
+              >
+                <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
+              </div>
+              <div className="text-left">
+                <div className="text-2xl font-black tracking-tight" style={{ color: stat.color }}>
+                  {stat.value}
+                </div>
+                <div className="text-[10px] font-mono text-white/30 uppercase tracking-wider">
+                  {stat.label}
+                </div>
+              </div>
+            </motion.div>
           ))}
         </motion.div>
 
-        <motion.a
-          href="#car-visualizer"
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="inline-flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors"
+          transition={{ duration: 1, delay: 2.2 }}
+          className="flex items-center justify-center gap-4"
         >
-          <span className="text-xs font-mono tracking-widest uppercase">Scroll to Explore</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+          <motion.a
+            href="#car-visualizer"
+            className="group relative px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#E8002D] to-[#FF6B6B] text-white text-sm font-semibold overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <ChevronDown className="w-5 h-5" />
-          </motion.div>
-        </motion.a>
-      </div>
+            <span className="relative z-10 flex items-center gap-2">
+              Explore Telemetry
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
+            <div className="absolute inset-0 bg-white/20 translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+          </motion.a>
+          <motion.a
+            href="#constructors"
+            className="px-8 py-3.5 rounded-xl border border-white/10 text-white/50 text-sm font-medium hover:text-white hover:border-white/20 transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            View Teams
+          </motion.a>
+        </motion.div>
+      </motion.div>
 
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-obsidian to-transparent" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 3, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10"
+      >
+        <motion.div
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          className="flex flex-col items-center gap-2 text-white/15"
+        >
+          <span className="text-[9px] font-mono tracking-[0.3em] uppercase">Scroll</span>
+          <ChevronDown className="w-4 h-4" />
+        </motion.div>
+      </motion.div>
+
+      <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#080a0f] to-transparent" />
     </section>
   );
 }

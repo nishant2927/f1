@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "F1 Fandom & History — Cyber Telemetry Dashboard",
+  title: "F1 PULSE — Formula 1 Fandom & History Dashboard",
   description:
-    "An immersive, production-ready F1 fandom application featuring interactive car telemetry, team showcases, driver profiles, and an era timeline.",
+    "Immersive F1 fandom application with interactive telemetry, team showcases, driver analytics, race calendars, and era-spanning timelines.",
 };
 
 export default function RootLayout({
@@ -14,7 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-obsidian text-white antialiased grid-bg">
+      <body className="bg-[#080a0f] text-white antialiased">
+        <div className="noise-overlay" />
         {children}
       </body>
     </html>

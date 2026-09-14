@@ -23,6 +23,7 @@ export interface Driver {
   careerStart: number;
   active: boolean;
   skills: DriverSkillMetrics;
+  imageUrl?: string;
 }
 
 export interface Constructor {
@@ -30,6 +31,7 @@ export interface Constructor {
   name: string;
   fullName: string;
   color: string;
+  accentColor: string;
   engineSupplier: string;
   worldChampionships: number;
   raceWins: number;
@@ -39,10 +41,9 @@ export interface Constructor {
   base: string;
   currentDrivers: string[];
   history: string;
-  logo: string;
 }
 
-export type TelemetryMode = "drs" | "topSpeed" | "highDownforce" | "default";
+export type TelemetryMode = "drs" | "topSpeed" | "highDownforce" | "quali" | "default";
 
 export interface TelemetryState {
   mode: TelemetryMode;
@@ -51,6 +52,8 @@ export interface TelemetryState {
   downforce: number;
   dragReduction: number;
   enginePower: number;
+  brakeBias: number;
+  ersDeployment: number;
 }
 
 export interface Era {
@@ -62,4 +65,26 @@ export interface Era {
   dominantTeam: string;
   color: string;
   icon: string;
+}
+
+export interface RaceEvent {
+  round: number;
+  name: string;
+  location: string;
+  country: string;
+  circuit: string;
+  date: string;
+  length: string;
+  laps: number;
+  flag: string;
+}
+
+export interface StandingEntry {
+  position: number;
+  driver: string;
+  driverNumber: number;
+  team: string;
+  teamColor: string;
+  points: number;
+  wins: number;
 }
