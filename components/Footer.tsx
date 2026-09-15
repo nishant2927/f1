@@ -49,7 +49,7 @@ export default function Footer() {
           <div>
             <h4 className="text-[10px] font-mono text-white/35 uppercase tracking-[0.2em] mb-5">Tech Stack</h4>
             <div className="flex flex-wrap gap-2">
-              {["Next.js 14", "TypeScript", "Tailwind CSS", "Framer Motion", "GSAP", "Lucide Icons"].map(
+              {["Next.js 14", "TypeScript", "Tailwind CSS", "Framer Motion", "Three.js", "React Three Fiber", "Lucide Icons"].map(
                 (tech) => (
                   <span
                     key={tech}

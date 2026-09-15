@@ -353,9 +353,18 @@ export default function CarVisualizer() {
     offset: ["start end", "end start"],
   });
   const parallaxY = useTransform(scrollYProgress, [0, 1], [60, -60]);
+  const bgOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.5, 0]);
 
   return (
     <section id="car-visualizer" ref={sectionRef} className="relative py-24 sm:py-36">
+      {/* Premium background glow */}
+      <motion.div
+        style={{ opacity: bgOpacity }}
+        className="absolute inset-0 pointer-events-none"
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#E8002D]/5 blur-[100px]" />
+      </motion.div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

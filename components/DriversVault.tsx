@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, MouseEvent } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { X, Trophy, Target, Timer, Droplets, Car, ChevronRight } from "lucide-react";
 import { drivers } from "@/data/drivers";
 import { Driver, DriverSkillMetrics } from "@/types";
@@ -114,6 +114,26 @@ function RadarChart({
 
 function DriverCard({ driver, index }: { driver: Driver; index: number }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 200, damping: 20 });
+  const scale = useSpring(1, { stiffness: 200, damping: 20 });
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+    scale.set(1.03);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+    scale.set(1);
+  };
 
   return (
     <>
@@ -122,71 +142,78 @@ function DriverCard({ driver, index }: { driver: Driver; index: number }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.7, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-        className="glass-card cursor-pointer group hover:border-white/8 transition-all duration-500 relative overflow-hidden"
-        onClick={() => setIsModalOpen(true)}
-        data-cursor="View"
       >
-        <div className="absolute top-0 left-0 w-full h-[2px] opacity-60" style={{ backgroundColor: driver.teamColor }} />
+        <motion.div
+          ref={cardRef}
+          style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          className="glass-card cursor-pointer group hover:border-white/8 transition-all duration-500 relative overflow-hidden"
+          onClick={() => setIsModalOpen(true)}
+          data-cursor="View"
+        >
+          <div className="absolute top-0 left-0 w-full h-[2px] opacity-60" style={{ backgroundColor: driver.teamColor }} />
 
-        <div className="p-5 sm:p-6 relative z-10">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center font-mono font-black text-base relative overflow-hidden"
-                style={{
-                  backgroundColor: `${driver.teamColor}12`,
-                  color: driver.teamColor,
-                  border: `1px solid ${driver.teamColor}20`,
-                }}
-              >
-                {driver.number}
-                <div className="absolute inset-0 bg-white/5 translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-sm">{driver.name}</h3>
-                <p className="text-[10px] text-white/25">{driver.nationality} · {driver.team}</p>
+          <div className="p-5 sm:p-6 relative z-10">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center font-mono font-black text-base relative overflow-hidden"
+                  style={{
+                    backgroundColor: `${driver.teamColor}12`,
+                    color: driver.teamColor,
+                    border: `1px solid ${driver.teamColor}20`,
+                  }}
+                >
+                  {driver.number}
+                  <div className="absolute inset-0 bg-white/5 translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">{driver.name}</h3>
+                  <p className="text-[10px] text-white/25">{driver.nationality} · {driver.team}</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {[
-              { value: driver.worldChampionships, label: "Titles", color: "#C9A94E" },
-              { value: driver.raceWins, label: "Wins", color: driver.teamColor },
-              { value: driver.podiums, label: "Podiums", color: "#fff" },
-              { value: driver.polePositions, label: "Poles", color: "#fff" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center py-2 rounded-lg bg-white/[0.02]">
-                <div className="text-base font-black" style={{ color: stat.color }}>
-                  {stat.value}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {[
+                { value: driver.worldChampionships, label: "Titles", color: "#C9A94E" },
+                { value: driver.raceWins, label: "Wins", color: driver.teamColor },
+                { value: driver.podiums, label: "Podiums", color: "#fff" },
+                { value: driver.polePositions, label: "Poles", color: "#fff" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center py-2 rounded-lg bg-white/[0.02]">
+                  <div className="text-base font-black" style={{ color: stat.color }}>
+                    {stat.value}
+                  </div>
+                  <div className="text-[8px] font-mono text-white/20 uppercase tracking-wider">{stat.label}</div>
                 </div>
-                <div className="text-[8px] font-mono text-white/20 uppercase tracking-wider">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="flex gap-1 mb-3">
-            {Object.values(driver.skills).map((val, i) => (
-              <div key={i} className="flex-1 h-1 rounded-full bg-white/[0.03] overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: driver.teamColor }}
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${val}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, delay: 0.3 + i * 0.1 }}
-                />
-              </div>
-            ))}
-          </div>
+            <div className="flex gap-1 mb-3">
+              {Object.values(driver.skills).map((val, i) => (
+                <div key={i} className="flex-1 h-1 rounded-full bg-white/[0.03] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: driver.teamColor }}
+                    initial={{ width: 0 }}
+                    whileInView={{ width: `${val}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, delay: 0.3 + i * 0.1 }}
+                  />
+                </div>
+              ))}
+            </div>
 
-          <div className="flex items-center justify-between text-[10px] text-white/20">
-            <span>Since {driver.careerStart}</span>
-            <span className="flex items-center gap-1 group-hover:gap-2 transition-all duration-300" style={{ color: driver.teamColor }}>
-              Profile <ChevronRight className="w-3 h-3" />
-            </span>
+            <div className="flex items-center justify-between text-[10px] text-white/20">
+              <span>Since {driver.careerStart}</span>
+              <span className="flex items-center gap-1 group-hover:gap-2 transition-all duration-300" style={{ color: driver.teamColor }}>
+                Profile <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       <AnimatePresence>
@@ -316,7 +343,7 @@ export default function DriversVault() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" style={{ perspective: "1200px" }}>
           {drivers.map((driver, index) => (
             <DriverCard key={driver.id} driver={driver} index={index} />
           ))}

@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 import { ChevronDown, Zap, Timer, Trophy, ArrowRight } from "lucide-react";
+
+const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
 
 function TextScramble({ text, className, delay = 0 }: { text: string; className?: string; delay?: number }) {
   const [display, setDisplay] = useState(text);
@@ -143,9 +146,16 @@ export default function Hero() {
       ref={containerRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
+      {/* 3D Three.js Background */}
+      <Suspense fallback={null}>
+        <HeroScene />
+      </Suspense>
+
+      {/* Canvas particle overlay */}
       <ParticleField />
 
-      <div className="absolute inset-0">
+      {/* Telemetry SVG lines */}
+      <div className="absolute inset-0 z-[1]">
         <svg className="absolute inset-0 w-full h-full opacity-[0.04]" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
           <defs>
             <linearGradient id="hero-line" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -167,6 +177,9 @@ export default function Hero() {
           ))}
         </svg>
       </div>
+
+      {/* Premium gradient overlay for text readability */}
+      <div className="absolute inset-0 z-[2] bg-gradient-to-b from-[#050709]/60 via-[#050709]/40 to-[#050709]/80" />
 
       <motion.div style={{ y: springY, opacity, scale }} className="relative z-10 max-w-6xl mx-auto px-4 text-center">
         <motion.div
@@ -289,7 +302,7 @@ export default function Hero() {
         </motion.div>
       </motion.div>
 
-      <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#080a0f] to-transparent" />
+      <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#080a0f] to-transparent z-[3]" />
     </section>
   );
 }

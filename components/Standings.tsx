@@ -1,12 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, Trophy } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { BarChart3, TrendingUp } from "lucide-react";
 import { standings2025 } from "@/data/constructors";
+import { useRef } from "react";
 
 export default function Standings() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const bgX = useTransform(scrollYProgress, [0, 1], [-20, 20]);
+
   return (
-    <section id="standings" className="relative py-24 sm:py-36">
+    <section id="standings" ref={sectionRef} className="relative py-24 sm:py-36">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -29,12 +34,19 @@ export default function Standings() {
         </motion.div>
 
         <motion.div
+          style={{ x: bgX }}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="glass-card overflow-hidden"
+          className="glass-card overflow-hidden relative"
         >
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#27F4D2]/20 to-transparent" />
+
+          {/* Glow effect */}
+          <div className="absolute -top-20 right-0 w-40 h-40 rounded-full bg-[#27F4D2]/5 blur-3xl pointer-events-none" />
+
           {/* Header */}
           <div className="grid grid-cols-[40px_1fr_80px_60px_80px] sm:grid-cols-[50px_1fr_100px_80px_80px_100px] gap-2 px-5 py-3 border-b border-white/[0.04] text-[9px] font-mono text-white/20 uppercase tracking-wider">
             <span>Pos</span>
@@ -58,15 +70,22 @@ export default function Standings() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.06 }}
-                className="relative grid grid-cols-[40px_1fr_80px_60px_80px] sm:grid-cols-[50px_1fr_100px_80px_80px_100px] gap-2 px-5 py-3.5 items-center border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors group"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+                className="relative grid grid-cols-[40px_1fr_80px_60px_80px] sm:grid-cols-[50px_1fr_100px_80px_80px_100px] gap-2 px-5 py-3.5 items-center border-b border-white/[0.02] transition-colors group cursor-default"
               >
                 {/* Background bar */}
                 <div
-                  className="absolute left-0 top-0 h-full opacity-[0.03] transition-opacity group-hover:opacity-[0.06]"
+                  className="absolute left-0 top-0 h-full opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500"
                   style={{
                     width: `${barWidth}%`,
                     backgroundColor: entry.teamColor,
                   }}
+                />
+
+                {/* Left accent */}
+                <div
+                  className="absolute left-0 top-0 h-full w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ backgroundColor: entry.teamColor }}
                 />
 
                 {/* Position */}

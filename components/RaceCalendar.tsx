@@ -1,21 +1,33 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Calendar, MapPin, Timer, Flag } from "lucide-react";
+import { Calendar, Timer } from "lucide-react";
 import { raceCalendar2025 } from "@/data/constructors";
 import { useRef, useState } from "react";
 
 function RaceCard({ race, index }: { race: typeof raceCalendar2025[0]; index: number }) {
   const isCompleted = new Date(race.date) < new Date("2025-09-15");
   const isNext = !isCompleted && index === raceCalendar2025.findIndex((r) => new Date(r.date) >= new Date("2025-09-15"));
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    cardRef.current.style.setProperty("--mouse-x", `${x}%`);
+    cardRef.current.style.setProperty("--mouse-y", `${y}%`);
+  };
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, x: 30 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, margin: "-30px" }}
       transition={{ duration: 0.5, delay: (index % 5) * 0.08 }}
-      className={`glass-card p-4 relative overflow-hidden group hover:border-white/10 transition-all duration-500 ${
+      onMouseMove={handleMouseMove}
+      className={`premium-card p-4 group hover:border-white/10 transition-all duration-500 ${
         isNext ? "ring-1 ring-[#E8002D]/30" : ""
       }`}
     >
@@ -24,7 +36,7 @@ function RaceCard({ race, index }: { race: typeof raceCalendar2025[0]; index: nu
       )}
 
       <div className="flex items-start gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 transition-all duration-300 group-hover:scale-110 ${
           isCompleted ? "bg-white/[0.03]" : isNext ? "bg-[#E8002D]/15" : "bg-white/[0.03]"
         }`}>
           {race.flag}
@@ -64,6 +76,9 @@ export default function RaceCalendar() {
 
   return (
     <section id="calendar" ref={containerRef} className="relative py-24 sm:py-36">
+      {/* Background glow */}
+      <div className="absolute top-1/3 right-0 w-96 h-96 rounded-full bg-[#FF8000]/3 blur-[120px] pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -87,17 +102,19 @@ export default function RaceCalendar() {
 
         <div className="flex justify-center gap-2 mb-8">
           {(["all", "completed", "upcoming"] as const).map((f) => (
-            <button
+            <motion.button
               key={f}
               onClick={() => setFilter(f)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
                 filter === f
-                  ? "bg-white/10 border border-white/10 text-white"
+                  ? "bg-white/10 border border-white/10 text-white shadow-lg shadow-white/5"
                   : "bg-white/[0.02] border border-white/[0.04] text-white/30 hover:text-white/60"
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
+            </motion.button>
           ))}
         </div>
 

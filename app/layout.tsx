@@ -1,10 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "F1 PULSE — Formula 1 Fandom & History Dashboard",
+  title: "F1 PULSE — Premium Formula 1 Experience",
   description:
-    "Immersive F1 fandom application with interactive telemetry, team showcases, driver analytics, race calendars, and era-spanning timelines.",
+    "An immersive 3D Formula 1 experience with interactive telemetry, team showcases, driver analytics, race calendars, and era-spanning timelines. Built with Three.js and React Three Fiber.",
+  keywords: ["Formula 1", "F1", "Racing", "Telemetry", "3D", "Three.js"],
+  icons: {
+    icon: "/favicon.svg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#080a0f",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

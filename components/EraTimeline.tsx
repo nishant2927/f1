@@ -30,7 +30,11 @@ function EraCard({ era, index }: { era: typeof eras[0]; index: number }) {
     >
       {/* Content */}
       <div className="flex-1">
-        <div className="glass-card p-6 sm:p-8 relative overflow-hidden group hover:border-white/8 transition-all duration-700">
+        <motion.div
+          whileHover={{ scale: 1.02, y: -4 }}
+          transition={{ duration: 0.3 }}
+          className="glass-card p-6 sm:p-8 relative overflow-hidden group hover:border-white/8 transition-all duration-700"
+        >
           {/* Top accent line */}
           <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: `linear-gradient(to right, ${era.color}, transparent)` }} />
 
@@ -40,6 +44,12 @@ function EraCard({ era, index }: { era: typeof eras[0]; index: number }) {
             style={{
               background: `radial-gradient(circle at ${index % 2 === 0 ? "100% 0%" : "0% 0%"}, ${era.color}08, transparent 60%)`,
             }}
+          />
+
+          {/* Corner glow */}
+          <div
+            className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+            style={{ backgroundColor: `${era.color}10` }}
           />
 
           <div className="relative z-10">
@@ -75,7 +85,8 @@ function EraCard({ era, index }: { era: typeof eras[0]; index: number }) {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={isInView ? { opacity: 1, scale: 1 } : {}}
                     transition={{ duration: 0.4, delay: 0.4 + i * 0.1 }}
-                    className="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.04] text-white/35 hover:text-white/60 hover:border-white/10 transition-all duration-300"
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.06)" }}
+                    className="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.04] text-white/35 hover:text-white/60 hover:border-white/10 transition-all duration-300 cursor-default"
                   >
                     {innovation}
                   </motion.span>
@@ -88,7 +99,7 @@ function EraCard({ era, index }: { era: typeof eras[0]; index: number }) {
               <span>Dominant: <span className="text-white/45">{era.dominantTeam}</span></span>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Timeline dot */}
@@ -101,9 +112,19 @@ function EraCard({ era, index }: { era: typeof eras[0]; index: number }) {
           style={{
             borderColor: era.color,
             backgroundColor: isInView ? era.color : "transparent",
-            boxShadow: isInView ? `0 0 20px ${era.color}40` : "none",
+            boxShadow: isInView ? `0 0 20px ${era.color}40, 0 0 40px ${era.color}20` : "none",
           }}
         />
+        {/* Pulse ring */}
+        {isInView && (
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 2, opacity: [0, 0.3, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+            className="absolute inset-0 rounded-full"
+            style={{ border: `1px solid ${era.color}` }}
+          />
+        )}
       </div>
 
       {/* Spacer for alignment */}
@@ -119,6 +140,9 @@ export default function EraTimeline() {
 
   return (
     <section id="timeline" ref={containerRef} className="relative py-24 sm:py-36">
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-[#FF8000]/3 blur-[150px] pointer-events-none" />
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

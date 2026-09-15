@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, MouseEvent } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useMotionTemplate } from "framer-motion";
 import { ChevronDown, Trophy, Flag, Users, MapPin, Calendar, Zap, ChevronRight } from "lucide-react";
 import { constructors } from "@/data/constructors";
 
@@ -88,19 +88,24 @@ function ConstructorCard({ team, index }: { team: typeof constructors[0]; index:
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 20 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 20 });
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), { stiffness: 200, damping: 20 });
+  const glareX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
+  const glareY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
+  const scale = useSpring(1, { stiffness: 200, damping: 20 });
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
     mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+    scale.set(1.02);
   };
 
   const handleMouseLeave = () => {
     mouseX.set(0);
     mouseY.set(0);
+    scale.set(1);
   };
 
   return (
@@ -112,20 +117,35 @@ function ConstructorCard({ team, index }: { team: typeof constructors[0]; index:
     >
       <motion.div
         ref={cardRef}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="glass-card cursor-pointer overflow-hidden group"
+        className="glass-card cursor-pointer overflow-hidden group relative"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+        {/* 3D glare effect */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl pointer-events-none z-10"
           style={{
-            background: `radial-gradient(circle at ${50}% ${50}%, ${team.color}08, transparent 70%)`,
+            background: useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.08), transparent 60%)`,
           }}
         />
 
-        <div className="p-5 sm:p-6 relative z-10">
+        {/* Color glow on hover */}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${team.color}12, transparent 70%)`,
+          }}
+        />
+
+        {/* Top accent line with glow */}
+        <div
+          className="absolute top-0 left-0 w-full h-[2px] opacity-80"
+          style={{ background: `linear-gradient(to right, transparent, ${team.color}, transparent)` }}
+        />
+
+        <div className="p-5 sm:p-6 relative z-20">
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0">
@@ -176,7 +196,7 @@ function ConstructorCard({ team, index }: { team: typeof constructors[0]; index:
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <div className="px-5 sm:px-6 pb-5 sm:pb-6 border-t border-white/[0.04] pt-4">
+              <div className="px-5 sm:px-6 pb-5 sm:pb-6 border-t border-white/[0.04] pt-4 relative z-20">
                 <p className="text-xs text-white/40 leading-relaxed mb-5">{team.history}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
@@ -230,7 +250,7 @@ export default function ConstructorsShowcase() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" style={{ perspective: "1000px" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" style={{ perspective: "1200px" }}>
           {constructors.map((team, index) => (
             <ConstructorCard key={team.id} team={team} index={index} />
           ))}
