@@ -39,89 +39,6 @@ function TextScramble({ text, className, delay = 0 }: { text: string; className?
   );
 }
 
-function ParticleField() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animId: number;
-    const particles: Array<{
-      x: number; y: number; vx: number; vy: number;
-      size: number; opacity: number; color: string;
-    }> = [];
-
-    const colors = ["#E8002D", "#3671C6", "#27F4D2", "#FF8000", "#229971"];
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 1.5 + 0.5,
-        opacity: Math.random() * 0.4 + 0.1,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      });
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.opacity;
-        ctx.fill();
-      });
-
-      particles.forEach((a, i) => {
-        particles.slice(i + 1).forEach((b) => {
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = a.color;
-            ctx.globalAlpha = (1 - dist / 150) * 0.06;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-      });
-
-      ctx.globalAlpha = 1;
-      animId = requestAnimationFrame(animate);
-    };
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />;
-}
-
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -146,13 +63,9 @@ export default function Hero() {
       ref={containerRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* 3D Three.js Background */}
       <Suspense fallback={null}>
         <HeroScene />
       </Suspense>
-
-      {/* Canvas particle overlay */}
-      <ParticleField />
 
       {/* Telemetry SVG lines */}
       <div className="absolute inset-0 z-[1]">
@@ -164,7 +77,7 @@ export default function Hero() {
               <stop offset="100%" stopColor="#FF8000" stopOpacity="0" />
             </linearGradient>
           </defs>
-          {[...Array(15)].map((_, i) => (
+          {[...Array(10)].map((_, i) => (
             <path
               key={i}
               d={`M${-100 + i * 40},${800 - i * 55} Q${600 + Math.sin(i * 0.7) * 250},${350 + Math.cos(i * 0.5) * 120} ${1400 + i * 20},${i * 60}`}
@@ -178,13 +91,13 @@ export default function Hero() {
         </svg>
       </div>
 
-      {/* Premium gradient overlay for text readability */}
+      {/* Text readability overlay */}
       <div className="absolute inset-0 z-[2] bg-gradient-to-b from-[#050709]/60 via-[#050709]/40 to-[#050709]/80" />
 
       <motion.div style={{ y: springY, opacity, scale }} className="relative z-10 max-w-6xl mx-auto px-4 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
           className="mb-8"
         >
@@ -198,8 +111,8 @@ export default function Hero() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1, ease: [0.22, 1, 0.36, 1] }}
           className="mb-6"
         >
@@ -214,8 +127,8 @@ export default function Hero() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.4 }}
           className="mb-10"
         >
