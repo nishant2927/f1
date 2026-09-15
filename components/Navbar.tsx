@@ -19,7 +19,7 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState("hero");
   const { scrollY } = useScroll();
   const bgOpacity = useTransform(scrollY, [0, 100], [0, 0.9]);
-  const borderOpacity = useTransform(scrollY, [0, 100], [0, 1]);
+  const borderOpacityVal = useTransform(scrollY, [0, 100], [0, 0.05]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -53,7 +53,7 @@ export default function Navbar() {
           className="absolute inset-0 backdrop-blur-xl border-b"
           style={{
             backgroundColor: `rgba(8, 10, 15, ${bgOpacity})`,
-            borderColor: `rgba(255, 255, 255, ${borderOpacity * 0.05})`,
+            borderColor: `rgba(255, 255, 255, ${borderOpacityVal})`,
           }}
         />
 
