@@ -288,7 +288,7 @@ function F1CarSVG({ state }: { state: TelemetryState }) {
 function TelemetryGauge({
   label, value, max, unit, color, icon: Icon,
 }: {
-  label: string; value: number; max: number; unit: string; color: string; icon: React.FC<{ className?: string }>;
+  label: string; value: number; max: number; unit: string; color: string; icon: React.FC<{ className?: string; style?: React.CSSProperties }>;
 }) {
   const percentage = (value / max) * 100;
   const circumference = 2 * Math.PI * 45;
