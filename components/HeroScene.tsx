@@ -186,7 +186,6 @@ export default function HeroScene() {
         camera={{ position: [0, 0.5, 5], fov: 50 }}
         dpr={[1, 1.2]}
         gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
-        frameloop="demand"
       >
         <Scene />
       </Canvas>
